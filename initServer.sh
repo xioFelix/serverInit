@@ -147,7 +147,7 @@ function check_ssh_agent_keys() {
 
 # 函数：添加私钥到 ssh-agent
 function add_key_to_ssh_agent() {
-    echo -e "${green}Select a user to add their private key to ssh-agent:${no_color}"
+    echo -e "${green}Select a user to add their ${red}private${green} key to ssh-agent:${no_color}"
     local current_user_keys
     mapfile -t current_user_keys < <(find "$HOME/.ssh" -name "*id_ed25519*" -exec basename {} \;)
     if [ ${#current_user_keys[@]} -gt 0 ]; then
