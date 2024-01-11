@@ -226,5 +226,5 @@ echo -e "${green}SSH_AUTH_SOCK=$SSH_AUTH_SOCK; export SSH_AUTH_SOCK;${no_color}"
 echo
 echo -e "${blue}You can run ${no_color}${green}ssh-add -l${no_color}${blue} to check if ssh-agent is successfully bound${no_color}"
 echo
-echo -e "{blue}and use ${green}ssh -T git@github.com${blue} to test github connection!${no_color}"
+echo -e "${blue}and use ${green}ssh -T git@github.com${blue} to test github connection!${no_color}"
 echo
