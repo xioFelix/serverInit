@@ -57,6 +57,21 @@ function init_ssh() {
         return 1
     fi
 
+    # 提示用户是否将公钥添加到本地的 ~/.ssh/authorized_keys
+    read -r -p "是否将公钥添加到本地用户的 ~/.ssh/authorized_keys 文件中？(y/n): " append_to_auth_keys
+    if [[ $append_to_auth_keys == "y" ]]; then
+        echo "可用的公钥文件:"
+        ls -l ~/.ssh/*.pub
+        read -r -p "请输入公钥文件的完整路径（例如 ~/.ssh/id_rsa.pub）: " pubkey_path
+
+        if [ -f "$pubkey_path" ]; then
+            cat "$pubkey_path" >> ~/.ssh/authorized_keys
+            echo "公钥已添加到 ~/.ssh/authorized_keys 文件中。"
+        else
+            echo "指定的公钥文件不存在。"
+        fi
+    fi
+
     # 改变目录和文件的权限
     chmod 700 "$ssh_dir"
     chmod 600 "$ssh_dir"/*
