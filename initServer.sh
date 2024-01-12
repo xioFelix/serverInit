@@ -89,7 +89,11 @@ function show_and_delete_user() {
 
 # 函数：检查 SSH 配置并进行修改
 function check_ssh_config() {
-    # Check and modify PermitRootLogin
+    # Display current status of PermitRootLogin
+    current_permit_root_login=$(grep "^PermitRootLogin" /etc/ssh/sshd_config | awk '{print $2}')
+    echo -e "${yellow}当前 PermitRootLogin 配置: ${current_permit_root_login:-默认 (prohibit-password)}${no_color}"
+
+    # Provide options to modify PermitRootLogin
     echo -e "${yellow}选择 PermitRootLogin 的配置: ${no_color}"
     echo "1. 不修改"
     echo "2. 禁止 root 登录 (PermitRootLogin no)"
@@ -109,17 +113,18 @@ function check_ssh_config() {
     esac
 
     # Check and modify PasswordAuthentication
-    if grep -q "^#*PasswordAuthentication yes" /etc/ssh/sshd_config; then
+    current_password_auth=$(grep "^PasswordAuthentication" /etc/ssh/sshd_config | awk '{print $2}')
+    echo -e "${yellow}当前 PasswordAuthentication 配置: ${current_password_auth:-yes}${no_color}"
+    if [[ "$current_password_auth" == "yes" ]]; then
         read -r -p "${yellow}当前允许使用密码直接登录。是否禁止? (y/n): ${no_color}" disable_password_auth
         if [[ $disable_password_auth == "y" ]]; then
-            sudo sed -i 's/^#*PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+            sudo sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
         fi
     fi
 
     # Restart SSH service to apply changes
-    sudo systemctl restart sshd
+    systemctl restart sshd
 }
-
 
 # 函数：检查 ssh-agent 托管的密钥
 function check_ssh_agent_keys() {
