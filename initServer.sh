@@ -89,7 +89,7 @@ function show_and_delete_user() {
 
 # 函数：检查 SSH 配置并进行修改
 function check_ssh_config() {
-       # Display current status of PermitRootLogin
+    # Display current status of PermitRootLogin
     if grep -q "^PermitRootLogin" /etc/ssh/sshd_config; then
         current_permit_root_login=$(grep "^PermitRootLogin" /etc/ssh/sshd_config | awk '{print $2}')
     else
@@ -99,18 +99,22 @@ function check_ssh_config() {
     echo -e "${green}当前 PermitRootLogin 配置: ${current_permit_root_login}${no_color}"
     # Provide options to modify PermitRootLogin
     echo -e "${yellow}选择 PermitRootLogin 的配置: ${no_color}"
-    echo "1. 不修改"
-    echo "2. 禁止 root 登录 (PermitRootLogin no)"
-    echo "3. 禁止 root 使用密码登录 (默认，通过注释实现)"
+    echo -e "${red}1. 允许 root 登录 (PermitRootLogin yes)${no_color}"
+    echo -e "${green}2. 禁止 root 登录 (PermitRootLogin no)${no_color}"
+    echo -e "${green}3. 禁止 root 使用密码登录 (默认，通过注释实现)${no_color}"
     read -r -p "输入选项 (1/2/3): " permit_root_login_choice
 
     case $permit_root_login_choice in
+        1)
+            sudo sed -i '/^#*PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config
+            echo -e "PermitRootLogin 设置为 ${red}yes${no_color}"
+            ;;
         2)
             sudo sed -i '/^#*PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
             echo -e "PermitRootLogin 设置为 ${green}no${no_color}"
             ;;
         3)
-            sudo sed -i '/^PermitRootLogin/c\#PermitRootLogin prohibit-password' /etc/ssh/sshd_config
+            sudo sed -i '/^#*PermitRootLogin/c\#PermitRootLogin prohibit-password' /etc/ssh/sshd_config
             echo -e "PermitRootLogin 设置为 ${green}prohibit-password${no_color}"
             ;;
         *)
