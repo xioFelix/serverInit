@@ -11,19 +11,19 @@ else
     SUDO=""
 fi
 
-echo "初始化服务器配置..."
+echo "Start configuring your server..."
 
-# 启动 ssh-agent
+# Start ssh-agent
 eval "$(ssh-agent -s)"
 
-# 定义颜色代码
+# Define color code
 blue="\033[0;34m"
 green="\033[0;32m"
 yellow="\033[1;33m"
 red="\033[0;31m"
 no_color="\033[0m"
 
-# 函数：初始化 SSH
+# Init SSH
 function init_ssh() {
     local ssh_dir="$HOME/.ssh"
     local public_key_file="$ssh_dir/id_ed25519.pub"
@@ -31,14 +31,14 @@ function init_ssh() {
     local red="\033[0;31m"
     local no_color="\033[0m"
 
-    # 确保 .ssh 目录存在
+    # Check .ssh dir
     if [ ! -d "$ssh_dir" ]; then
         mkdir -p "$ssh_dir"
         chmod 700 "$ssh_dir"
     fi
 
     echo ""
-    # 检查并询问用户是否生成新的 SSH 密钥
+    # Check and ask user if need new SSH keys
     if [ -f "$public_key_file" ]; then
         echo -e "${red}检测到已存在 SSH 密钥。生成新密钥将覆盖现有密钥。${no_color}"
         read -r -p "是否继续生成新密钥？(y/n): " confirm
@@ -49,7 +49,7 @@ function init_ssh() {
     fi
 
     echo ""
-    # 询问用户是否添加注释
+    # Ask if need to add comment
     read -r -p "是否添加注释到 SSH 密钥？(y/n): " add_comment
     local key_comment=""
     if [[ $add_comment == "y" ]]; then
@@ -57,20 +57,20 @@ function init_ssh() {
     fi
 
     echo ""
-    # 生成 SSH 密钥
+    # Generate SSH key fail
     if ! ssh-keygen -t ed25519 -C "$key_comment" ; then
         echo -e "${red}SSH 密钥生成失败。${no_color}"
         return 1
     fi
 
     echo ""
-    # 检查公钥是否在 authorized_keys 中
+    # Check if public key in file authorized_keys
     if [ -f "$authorized_keys_file" ] && ! grep -qFf "$public_key_file" "$authorized_keys_file"; then
         echo -e "${red}当前公钥不在 ~/.ssh/authorized_keys 文件中。请考虑手动添加。${no_color}"
     fi
 
     echo ""
-    # 提示用户是否将公钥添加到本地的 ~/.ssh/authorized_keys
+    # Notice user if add public key to the file ~/.ssh/authorized_keys
     read -r -p "是否将公钥添加到本地用户的 ~/.ssh/authorized_keys 文件中？(y/n): " append_to_auth_keys
     if [[ $append_to_auth_keys == "y" ]]; then
         cat "$public_key_file" >> "$authorized_keys_file"
@@ -78,15 +78,13 @@ function init_ssh() {
     fi
 
     echo ""
-    # 改变目录和文件的权限
+    # Change the permissions of directories and files
     chmod 700 "$ssh_dir"
     chmod 600 "$ssh_dir"/*
 
     echo -e "\n${blue}初始化 SSH 已成功执行${no_color}"
 }
 
-
-# 函数：添加新用户
 function add_user() {
     read -r -p "是否添加新用户? (y/n): " add_new_user
     if [[ $add_new_user == "y" ]]; then
@@ -100,11 +98,10 @@ function add_user() {
     echo -e "${blue}添加新用户 已成功执行${no_color}"
 }
 
-# 函数：显示系统内的所有用户并提供删除选项
 function show_and_delete_user() {
     echo -e "${green}系统内的所有用户:${no_color}"
     local users
-    # 仅列出具有有效登录 shell 的用户
+    # List shell users
     mapfile -t users < <(awk -F: '{ if ($7 ~ /^(\/bin\/bash|\/bin\/sh)$/) print $1 }' /etc/passwd)
     local choice
     for i in "${!users[@]}"; do
@@ -126,8 +123,6 @@ function show_and_delete_user() {
     echo -e "${blue}显示和删除用户 已成功执行${no_color}"
 }
 
-
-# 函数：检查 SSH 配置并进行修改
 function check_ssh_config() {
     # Display current status of PermitRootLogin
     if grep -q "^PermitRootLogin" /etc/ssh/sshd_config; then
@@ -201,7 +196,6 @@ function check_ssh_config() {
     echo
 }
 
-# 函数：添加私钥到 ssh-agent
 function add_key_to_ssh_agent() {
     echo -e "${green}Select a user to add their ${red}private${green} key to ssh-agent:${no_color}"
     local current_user_keys
@@ -266,7 +260,7 @@ function add_key_to_ssh_agent() {
     fi
 }
 
-# 执行所有函数
+# Exec all the functions
 init_ssh
 add_user
 show_and_delete_user
