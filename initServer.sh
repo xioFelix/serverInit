@@ -106,7 +106,7 @@ function check_ssh_config() {
 
     case $permit_root_login_choice in
         2)
-            sudo sed -i '/^PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
+            sudo sed -i '/^#*PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
             echo -e "PermitRootLogin 设置为 ${green}no${no_color}"
             ;;
         3)
