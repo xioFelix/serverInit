@@ -98,6 +98,7 @@ function check_ssh_config() {
     echo
     if [ "$current_permit_root_login" == "yes" ]; then
         echo -e "${red}当前 PermitRootLogin 配置: ${current_permit_root_login}${no_color}"
+        echo
     else
         echo -e "${green}当前 PermitRootLogin 配置: ${current_permit_root_login}${no_color}"
     fi
@@ -126,19 +127,38 @@ function check_ssh_config() {
             echo "PermitRootLogin 未改变"
             ;;
     esac
+    echo
 
     # Check and modify PasswordAuthentication
     current_password_auth=$(grep "^PasswordAuthentication" /etc/ssh/sshd_config | awk '{print $2}')
-    echo -e "${yellow}当前 PasswordAuthentication 配置: ${current_password_auth:-yes}${no_color}"
-    if [[ "$current_password_auth" == "yes" ]]; then
-        read -r -p "${yellow}当前允许使用密码直接登录。是否禁止? (y/n): ${no_color}" disable_password_auth
-        if [[ $disable_password_auth == "y" ]]; then
-            sudo sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-        fi
+    echo
+    if [ "$current_password_auth" == "yes" ]; then
+        echo -e "${red}当前 PasswordAuthentication 配置: ${current_password_auth}${no_color}"
+    else
+        echo -e "${green}当前 PasswordAuthentication 配置: ${current_password_auth:-默认 (no)}${no_color}"
     fi
+    echo -e "${yellow}选择 PasswordAuthentication 的配置: ${no_color}"
+    echo -e "${red}1. 允许使用密码登录 (PasswordAuthentication yes)${no_color}"
+    echo -e "${green}2. 禁止使用密码登录 (PasswordAuthentication no)${no_color}"
+    read -r -p "输入选项 (1/2): " password_auth_choice
+
+    case $password_auth_choice in
+        1)
+            sudo sed -i '/^#*PasswordAuthentication/c\PasswordAuthentication yes' /etc/ssh/sshd_config
+            echo -e "PasswordAuthentication 设置为 ${red}yes${no_color}"
+            ;;
+        2)
+            sudo sed -i '/^#*PasswordAuthentication/c\PasswordAuthentication no' /etc/ssh/sshd_config
+            echo -e "PasswordAuthentication 设置为 ${green}no${no_color}"
+            ;;
+        *)
+            # No changes
+            echo "PasswordAuthentication 未改变"
+            ;;
+    esac
 
     # Restart SSH service to apply changes
-    systemctl restart sshd
+    sudo systemctl restart sshd
 }
 
 # 函数：检查 ssh-agent 托管的密钥
