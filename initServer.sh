@@ -160,13 +160,6 @@ function check_ssh_config() {
     sudo systemctl restart sshd
     echo
 }
-# 函数：检查 ssh-agent 托管的密钥
-function check_ssh_agent_keys() {
-    echo -e "${green}当前由 ssh-agent 托管的密钥:${no_color}"
-    ssh-add -l
-    echo -e "${blue}检查 ssh-agent 托管的密钥 已成功执行${no_color}"
-    echo
-}
 
 # 函数：添加私钥到 ssh-agent
 function add_key_to_ssh_agent() {
@@ -238,7 +231,6 @@ init_ssh
 add_user
 show_and_delete_user
 check_ssh_config
-check_ssh_agent_keys
 add_key_to_ssh_agent
 
 echo
