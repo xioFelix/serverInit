@@ -96,7 +96,11 @@ function check_ssh_config() {
         current_permit_root_login="默认 (prohibit-password)"
     fi
     echo
-    echo -e "${green}当前 PermitRootLogin 配置: ${current_permit_root_login}${no_color}"
+    if [ "$current_permit_root_login" == "yes" ]; then
+        echo -e "${red}当前 PermitRootLogin 配置: ${current_permit_root_login}${no_color}"
+    else
+        echo -e "${green}当前 PermitRootLogin 配置: ${current_permit_root_login}${no_color}"
+    fi
     # Provide options to modify PermitRootLogin
     echo -e "${yellow}选择 PermitRootLogin 的配置: ${no_color}"
     echo -e "${red}1. 允许 root 登录 (PermitRootLogin yes)${no_color}"
