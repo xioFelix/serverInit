@@ -89,54 +89,37 @@ function show_and_delete_user() {
 
 # 函数：检查 SSH 配置并进行修改
 function check_ssh_config() {
-    # 检查并修改 PermitRootLogin
-    root_config_found=false
-    if grep -q "^PermitRootLogin yes" /etc/ssh/sshd_config; then
-        read -r -p "${yellow}当前允许直接登录 ${no_color}${red}root${yellow} 账户。是否禁止? (y/n): ${no_color}" disable_root_login
-        if [[ $disable_root_login == "y" ]]; then
-            sed -i 's/^PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
-            # echo "已禁止直接登录 root 账户。"
-            root_config_found=true
-        fi
-    fi
+    # Check and modify PermitRootLogin
+    echo -e "${yellow}选择 PermitRootLogin 的配置: ${no_color}"
+    echo "1. 不修改"
+    echo "2. 禁止 root 登录 (PermitRootLogin no)"
+    echo "3. 禁止 root 使用密码登录 (默认，通过注释实现)"
+    read -r -p "输入选项 (1/2/3): " permit_root_login_choice
 
-    if grep -q "^PermitRootLogin no" /etc/ssh/sshd_config; then
-        echo -e "${green}已禁止 直接 登录 ${no_color}${red}root${green} 账户。${no_color}"
-        root_config_found=true
-    fi
+    case $permit_root_login_choice in
+        2)
+            sudo sed -i 's/^PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+            ;;
+        3)
+            sudo sed -i 's/^PermitRootLogin.*/#PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+            ;;
+        *)
+            # No changes
+            ;;
+    esac
 
-    if grep -q "^#*PermitRootLogin prohibit-password" /etc/ssh/sshd_config; then
-        echo -e "${green}已禁止 使用密码 登录 ${no_color}${red}root${green} 账户。${no_color}"
-        root_config_found=true
-    fi
-
-    if [ "$root_config_found" = false ]; then
-    echo -e "${red}未检测到 root 配置，默认为 PermitRootLogin prohibit-password ${no_color}"
-    fi
-
-    # 检查并修改 PasswordAuthentication
-    passwd_config_found=false
+    # Check and modify PasswordAuthentication
     if grep -q "^#*PasswordAuthentication yes" /etc/ssh/sshd_config; then
         read -r -p "${yellow}当前允许使用密码直接登录。是否禁止? (y/n): ${no_color}" disable_password_auth
         if [[ $disable_password_auth == "y" ]]; then
-            sed -i 's/^#*PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-            # echo "已禁止使用密码直接登录。"
-            passwd_config_found=true
+            sudo sed -i 's/^#*PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
         fi
     fi
 
-    if grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config; then
-        echo -e "${green}已禁止 使用密码 直接登录。${no_color}"
-        passwd_config_found=true
-    fi
-
-    if [ "$passwd_config_found" = false ]; then
-    echo -e "${red}未检测到 密码直接登录 配置，默认为 PasswordAuthentication yes ${no_color}"
-    fi
-
-    # 重启 SSH 服务以应用更改
-    systemctl restart sshd
+    # Restart SSH service to apply changes
+    sudo systemctl restart sshd
 }
+
 
 # 函数：检查 ssh-agent 托管的密钥
 function check_ssh_agent_keys() {
