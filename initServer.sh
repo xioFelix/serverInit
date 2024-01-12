@@ -92,7 +92,7 @@ function check_ssh_config() {
     # 检查并修改 PermitRootLogin
     root_config_found=false
     if grep -q "^PermitRootLogin yes" /etc/ssh/sshd_config; then
-        read -p -r "${yellow}当前允许直接登录 ${no_color}${red}root${yellow} 账户。是否禁止? (y/n): ${no_color}" disable_root_login
+        read -r -p "${yellow}当前允许直接登录 ${no_color}${red}root${yellow} 账户。是否禁止? (y/n): ${no_color}" disable_root_login
         if [[ $disable_root_login == "y" ]]; then
             sed -i 's/^PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
             # echo "已禁止直接登录 root 账户。"
@@ -116,10 +116,10 @@ function check_ssh_config() {
 
     # 检查并修改 PasswordAuthentication
     passwd_config_found=false
-    if grep -q "^PasswordAuthentication yes" /etc/ssh/sshd_config; then
-        read -p -r "${yellow}当前允许使用密码直接登录。是否禁止? (y/n): ${no_color}" disable_password_auth
+    if grep -q "^#*PasswordAuthentication yes" /etc/ssh/sshd_config; then
+        read -r -p "${yellow}当前允许使用密码直接登录。是否禁止? (y/n): ${no_color}" disable_password_auth
         if [[ $disable_password_auth == "y" ]]; then
-            sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+            sed -i 's/^#*PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
             # echo "已禁止使用密码直接登录。"
             passwd_config_found=true
         fi
