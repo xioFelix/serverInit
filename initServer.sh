@@ -27,16 +27,21 @@ no_color="\033[0m"
 function init_ssh() {
     local ssh_dir="$HOME/.ssh"
     local public_key_file="$ssh_dir/id_ed25519.pub"
+    local authorized_keys_file="$ssh_dir/authorized_keys"
+    local red="\033[0;31m"
+    local no_color="\033[0m"
 
+    echo ""
     # 确保 .ssh 目录存在
     if [ ! -d "$ssh_dir" ]; then
         mkdir -p "$ssh_dir"
         chmod 700 "$ssh_dir"
     fi
 
+    echo ""
     # 检查并询问用户是否生成新的 SSH 密钥
     if [ -f "$public_key_file" ]; then
-        echo "检测到已存在 SSH 密钥。生成新密钥将覆盖现有密钥。"
+        echo -e "${red}检测到已存在 SSH 密钥。生成新密钥将覆盖现有密钥。${no_color}"
         read -r -p "是否继续生成新密钥？(y/n): " confirm
         if [[ $confirm != "y" ]]; then
             echo "取消生成新密钥。"
@@ -44,6 +49,7 @@ function init_ssh() {
         fi
     fi
 
+    echo ""
     # 询问用户是否添加注释
     read -r -p "是否添加注释到 SSH 密钥？(y/n): " add_comment
     local key_comment=""
@@ -51,37 +57,35 @@ function init_ssh() {
         read -r -p "请输入密钥注释（通常为邮箱地址）: " key_comment
     fi
 
+    echo ""
     # 生成 SSH 密钥
-    if ! ssh-keygen -t ed25519 -C "$key_comment" -f "$ssh_dir/id_ed25519"; then
-        echo "SSH 密钥生成失败。"
+    if ! ssh-keygen -t ed25519 -C "$key_comment" -f "$public_key_file"; then
+        echo -e "${red}SSH 密钥生成失败。${no_color}"
         return 1
     fi
 
+    echo ""
+    # 检查公钥是否在 authorized_keys 中
+    if [ -f "$authorized_keys_file" ] && ! grep -qFf "$public_key_file" "$authorized_keys_file"; then
+        echo -e "${red}当前公钥不在 ~/.ssh/authorized_keys 文件中。请考虑手动添加。${no_color}"
+    fi
+
+    echo ""
     # 提示用户是否将公钥添加到本地的 ~/.ssh/authorized_keys
     read -r -p "是否将公钥添加到本地用户的 ~/.ssh/authorized_keys 文件中？(y/n): " append_to_auth_keys
     if [[ $append_to_auth_keys == "y" ]]; then
-        echo "可用的公钥文件:"
-        ls -l ~/.ssh/*.pub
-        read -r -p "请输入公钥文件的完整路径（例如 ~/.ssh/id_rsa.pub）: " pubkey_path
-
-        if [ -f "$pubkey_path" ]; then
-            cat "$pubkey_path" >> ~/.ssh/authorized_keys
-            echo "公钥已添加到 ~/.ssh/authorized_keys 文件中。"
-        else
-            echo "指定的公钥文件不存在。"
-        fi
+        cat "$public_key_file" >> "$authorized_keys_file"
+        echo "公钥已添加到 ~/.ssh/authorized_keys 文件中。"
     fi
 
+    echo ""
     # 改变目录和文件的权限
     chmod 700 "$ssh_dir"
     chmod 600 "$ssh_dir"/*
 
-    # 将密钥添加到 ssh-agent
-    eval "$(ssh-agent -s)"
-    ssh-add "$ssh_dir/id_ed25519"
-
-    echo -e "${blue}初始化 SSH 已成功执行${no_color}"
+    echo -e "\n${blue}初始化 SSH 已成功执行${no_color}"
 }
+
 
 # 函数：添加新用户
 function add_user() {
