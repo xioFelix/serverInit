@@ -30,18 +30,40 @@ function init_ssh() {
 
     # 确保 .ssh 目录存在
     if [ ! -d "$ssh_dir" ]; then
-        sudo mkdir -p "$ssh_dir"
-        sudo chmod 700 "$ssh_dir"
+        mkdir -p "$ssh_dir"
+        chmod 700 "$ssh_dir"
     fi
 
-    # 创建公钥文件，如果它不存在
-    if [ ! -f "$public_key_file" ]; then
-        sudo touch "$public_key_file"
+    # 检查并询问用户是否生成新的 SSH 密钥
+    if [ -f "$public_key_file" ]; then
+        echo "检测到已存在 SSH 密钥。生成新密钥将覆盖现有密钥。"
+        read -r -p "是否继续生成新密钥？(y/n): " confirm
+        if [[ $confirm != "y" ]]; then
+            echo "取消生成新密钥。"
+            return 1
+        fi
+    fi
+
+    # 询问用户是否添加注释
+    read -r -p "是否添加注释到 SSH 密钥？(y/n): " add_comment
+    local key_comment=""
+    if [[ $add_comment == "y" ]]; then
+        read -r -p "请输入密钥注释（通常为邮箱地址）: " key_comment
+    fi
+
+    # 生成 SSH 密钥
+    if ! ssh-keygen -t ed25519 -C "$key_comment" -f "$ssh_dir/id_ed25519"; then
+        echo "SSH 密钥生成失败。"
+        return 1
     fi
 
     # 改变目录和文件的权限
-    sudo chmod 700 "$ssh_dir"
-    sudo chmod 600 "$ssh_dir"/*
+    chmod 700 "$ssh_dir"
+    chmod 600 "$ssh_dir"/*
+
+    # 将密钥添加到 ssh-agent
+    eval "$(ssh-agent -s)"
+    ssh-add "$ssh_dir/id_ed25519"
 
     echo -e "${blue}初始化 SSH 已成功执行${no_color}"
 }
