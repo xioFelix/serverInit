@@ -107,7 +107,7 @@ function check_ssh_config() {
     echo -e "${red}1. 允许 root 登录 (PermitRootLogin yes)${no_color}"
     echo -e "${green}2. 禁止 root 登录 (PermitRootLogin no)${no_color}"
     echo -e "${green}3. 禁止 root 使用密码登录 (默认，通过注释实现)${no_color}"
-    read -r -p "输入选项 (1/2/3): " permit_root_login_choice
+    read -r -p "输入选项 (1/2/3/其他不修改): " permit_root_login_choice
 
     case $permit_root_login_choice in
         1)
@@ -127,7 +127,6 @@ function check_ssh_config() {
             echo "PermitRootLogin 未改变"
             ;;
     esac
-    echo
 
     # Check and modify PasswordAuthentication
     current_password_auth=$(grep "^PasswordAuthentication" /etc/ssh/sshd_config | awk '{print $2}')
@@ -140,7 +139,7 @@ function check_ssh_config() {
     echo -e "${yellow}选择 PasswordAuthentication 的配置: ${no_color}"
     echo -e "${red}1. 允许使用密码登录 (PasswordAuthentication yes)${no_color}"
     echo -e "${green}2. 禁止使用密码登录 (PasswordAuthentication no)${no_color}"
-    read -r -p "输入选项 (1/2): " password_auth_choice
+    read -r -p "输入选项 (1/2/其他不修改): " password_auth_choice
 
     case $password_auth_choice in
         1)
@@ -159,13 +158,14 @@ function check_ssh_config() {
 
     # Restart SSH service to apply changes
     sudo systemctl restart sshd
+    echo
 }
-
 # 函数：检查 ssh-agent 托管的密钥
 function check_ssh_agent_keys() {
     echo -e "${green}当前由 ssh-agent 托管的密钥:${no_color}"
     ssh-add -l
     echo -e "${blue}检查 ssh-agent 托管的密钥 已成功执行${no_color}"
+    echo
 }
 
 # 函数：添加私钥到 ssh-agent
