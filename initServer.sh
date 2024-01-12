@@ -31,7 +31,6 @@ function init_ssh() {
     local red="\033[0;31m"
     local no_color="\033[0m"
 
-    echo ""
     # 确保 .ssh 目录存在
     if [ ! -d "$ssh_dir" ]; then
         mkdir -p "$ssh_dir"
@@ -59,7 +58,7 @@ function init_ssh() {
 
     echo ""
     # 生成 SSH 密钥
-    if ! ssh-keygen -t ed25519 -C "$key_comment" -f "$public_key_file"; then
+    if ! ssh-keygen -t ed25519 -C "$key_comment" ; then
         echo -e "${red}SSH 密钥生成失败。${no_color}"
         return 1
     fi
