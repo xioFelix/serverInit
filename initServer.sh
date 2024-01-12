@@ -124,7 +124,7 @@ function check_ssh_config() {
             ;;
         *)
             # No changes
-            echo "${blue}PermitRootLogin 未改变${no_color}"
+            echo -e "${blue}PermitRootLogin 未改变${no_color}"
             ;;
     esac
 
